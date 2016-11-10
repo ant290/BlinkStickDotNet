@@ -56,6 +56,8 @@
     <Compile Include="Processors\Led.cs" />
     <Compile Include="Processors\LedProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Timing\AnimationState.cs" />
+    <Compile Include="Timing\AnimationTimer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlinkStickDotNet\BlinkStickDotNet.csproj">

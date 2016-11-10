@@ -207,7 +207,9 @@ namespace BlinkStickDotNet.Animations
         public static Color[] PadBlack(this Color color, int size, params Color[] colors)
         {
             if (color == null)
+            {
                 throw new ArgumentNullException(nameof(color));
+            }
 
             var list = new List<Color>();
 
@@ -217,6 +219,37 @@ namespace BlinkStickDotNet.Animations
             while (list.Count < size)
             {
                 list.Add(Color.Black);
+            }
+
+            return list.ToArray();
+        }
+
+        public static Color[] Shift(this Color[] colors, int p = 1)
+        {
+            if(colors == null || colors.Length <= 1 || p == 0)
+            {
+                return colors;
+            }
+
+            List<Color> list = colors.ToList();
+            if(p > 0)
+            {
+                for (int i = 0; i != p; i++)
+                {
+                    var z = list.Count - 1;
+                    var c = list[z];
+                    list.Insert(0, c);
+                    list.RemoveAt(z);
+                }
+            }
+            else
+            {
+                for (int i = 0; i != p; i--)
+                {
+                    var c = list[0];
+                    list.Add(c);
+                    list.RemoveAt(0);
+                }
             }
 
             return list.ToArray();

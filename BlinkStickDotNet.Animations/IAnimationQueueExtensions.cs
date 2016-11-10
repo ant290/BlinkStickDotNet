@@ -1,5 +1,6 @@
 ﻿using BlinkStickDotNet.Animations.Implementations;
 using BlinkStickDotNet.Animations.Processors;
+using BlinkStickDotNet.Animations.Timing;
 using System;
 using System.Drawing;
 using System.Linq;
@@ -180,7 +181,9 @@ namespace BlinkStickDotNet.Animations
         public static IAnimationQueue Chase(this IAnimationQueue queue, uint duration, int direction, uint spins, params Color[] colors)
         {
             if (queue == null)
+            {
                 throw new ArgumentNullException(nameof(queue));
+            }
 
             var animation = new ActionAnimation((p) =>
             {
@@ -261,7 +264,9 @@ namespace BlinkStickDotNet.Animations
         public static IAnimationQueue Color(this IAnimationQueue queue, params Color[] colors)
         {
             if (queue == null)
+            {
                 throw new ArgumentNullException(nameof(queue));
+            }
 
             return queue.Color(0, colors);
         }
@@ -275,7 +280,9 @@ namespace BlinkStickDotNet.Animations
         public static IAnimationQueue Wait(this IAnimationQueue queue, uint duration)
         {
             if (queue == null)
+            {
                 throw new ArgumentNullException(nameof(queue));
+            }
 
             var animation = new Wait(duration);
             return queue.Queue(animation);
@@ -314,39 +321,25 @@ namespace BlinkStickDotNet.Animations
             colors = colors.CloneArray(nrOfColors);
             destinationColors = destinationColors.CloneArray(nrOfColors);
 
-            if (duration > 0)
-            {
-                var hz = 100;
-                var steps = (((double)duration) / 1000) * hz;
-                var wait = duration / steps;
+            var timer = AnimationTimer.CreateFromHz(duration, 100);
 
-                for (int i = 0; i < steps; i++)
+            timer.Start((s) =>
+            {
+                //calculate each color as a percentage move
+                for (int c = 0; c < colors.Length; c++)
                 {
-                    //calculate each color as a percentage move
-                    for (int c = 0; c < colors.Length; c++)
-                    {
-                        var color = colors[c];
-                        var destinationColor = destinationColors[c];
+                    var color = colors[c];
+                    var destinationColor = destinationColors[c];
 
-                        var r = (byte)Math.Round(color.R + (destinationColor.R - color.R) / steps * i, MidpointRounding.AwayFromZero);
-                        var g = (byte)Math.Round(color.G + (destinationColor.G - color.G) / steps * i, MidpointRounding.AwayFromZero);
-                        var b = (byte)Math.Round(color.B + (destinationColor.B - color.B) / steps * i, MidpointRounding.AwayFromZero);
+                    var r = (byte)Math.Round(color.R + (destinationColor.R - color.R) * s.Percentage, MidpointRounding.AwayFromZero);
+                    var g = (byte)Math.Round(color.G + (destinationColor.G - color.G) * s.Percentage, MidpointRounding.AwayFromZero);
+                    var b = (byte)Math.Round(color.B + (destinationColor.B - color.B) * s.Percentage, MidpointRounding.AwayFromZero);
 
-                        leds[c].Color = System.Drawing.Color.FromArgb(r, g, b);
-                    }
-
-                    processor.Process();
-                    Thread.Sleep((int)wait);
+                    leds[c].Color = System.Drawing.Color.FromArgb(r, g, b);
                 }
-            }
 
-            //end with colors - helps to prevent rounding errors
-            for (var i = 0; i < leds.Length; i++)
-            {
-                leds[i].Color = destinationColors[i];
-            }
-
-            processor.Process();
+                processor.Process();
+            });
         }
 
         /// <summary>

@@ -188,10 +188,14 @@ namespace BlinkStickDotNet.IntegrationTests
             var stick = BlinkStickIntegrationTests.EnsureBlinkStick();
             var finished = new ManualResetEvent(false);
 
+            stick.SetLedCount(8);
+
             var q = new Animator();
-            q.Color(1000, Color.Red);
-            q.Chase(1000, Color.Green);
-            q.Chase(1000, Color.Blue);
+
+            q.Off();
+            q.Chase(1000, Color.Red.PadBlack(8));
+            q.Chase(1000, Color.Green.PadBlack(8));
+            q.Chase(1000, Color.Blue.PadBlack(8));
             q.Queue(new ActionAnimation((p) =>
             {
                 finished.Set();
@@ -205,6 +209,7 @@ namespace BlinkStickDotNet.IntegrationTests
 
         }
 
+        [TestMethod]
         public void AnimationQueue_ChaseMorp()
         {
             var stick = BlinkStickIntegrationTests.EnsureBlinkStick();
@@ -212,9 +217,8 @@ namespace BlinkStickDotNet.IntegrationTests
 
             var finished = new ManualResetEvent(false);
 
-
-
             var q = new Animator();
+            q.Off();
             q.Chase(1000, Color.Blue.PadBlack(8));
             q.Repeat(2);
             q.Chase(1000, -1, Color.Blue.PadBlack(8));
@@ -223,6 +227,12 @@ namespace BlinkStickDotNet.IntegrationTests
             {
                 finished.Set();
             }));
+
+            q.Connect(stick);
+            q.Start();
+
+            finished.WaitOne();
+            stick.TurnOff();
         }
 
         [TestMethod]
